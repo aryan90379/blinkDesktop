@@ -1,9 +1,10 @@
-import { app, BrowserWindow, screen,ipcMain } from 'electron'
-import { createRequire } from 'node:module'
+// main.ts
+import { app, BrowserWindow, screen, ipcMain } from 'electron'
+// import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-const require = createRequire(import.meta.url)
+// const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 process.env.APP_ROOT = path.join(__dirname, '..')
@@ -16,65 +17,103 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
-let win: BrowserWindow | null
+let win: BrowserWindow | null = null
 
 function createWindow() {
   const display = screen.getPrimaryDisplay()
-  const { width: screenWidth, height: screenHeight } = display.workAreaSize
+  const { width: screenWidth } = display.workAreaSize
 
-  // Default window size & position
-  let windowWidth = 300
-  let windowHeight = 200
-  let windowX = screenWidth - windowWidth
-  let windowY = 0
+  const winWidth = 300
+  const winHeight = 300
+
+  const windowX = screenWidth - winWidth
+  const windowY = 0
+ 
+
 
   win = new BrowserWindow({
-    width: windowWidth,
-    height: windowHeight,
+    width: winWidth,
+    height: winHeight,
     x: windowX,
     y: windowY,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
-    resizable: false,
+    resizable: true,
     skipTaskbar: true,
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    focusable: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    type: 'toolbar',
+    minWidth: 150,   // ⬅️ Set minimum width
+    minHeight: 250,  // ⬅️ Set minimum height
+    maxWidth: 150,   // ⬅️ Set maximum width
+    maxHeight: 250,  // ⬅️ Set maximum height
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
-    },
+      preload: path.join(__dirname, 'preload.js')
+    }
   })
 
-  // Existing message sending on load
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString())
-  })
+  // Keep window always on top with specific mode
+  win.setAlwaysOnTop(true, 'screen-saver')
 
+  // Show window on all workspaces and visible on fullscreen apps
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+
+  win.setFullScreenable(false)
+//  win.webContents.openDevTools()
+  // Load URL or file depending on dev or prod
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
+
+  // Send a message after content is loaded
+  win.webContents.on('did-finish-load', () => {
+    win?.webContents.send('main-process-message', new Date().toLocaleString())
+  })
+
+  // Clean up reference on window close
+  win.on('closed', () => {
+    win = null
+  })
 }
 
+// Aspect ratio for resizing
+const ASPECT_RATIO = 4 / 3 // width / height
 
-// ipc listener window 
-// IPC listener to dynamically update window size
-ipcMain.on('set-window-size', (event, { width, height }) => {
+// Listen for resize requests from renderer
+ipcMain.on('resize-window', (_event, { width }) => {
+  // Calculate height based on aspect ratio
+  const height = Math.round(width / ASPECT_RATIO)
+
+  const display = screen.getPrimaryDisplay()
+  const { width: screenWidth } = display.workAreaSize
+
+  const newX = screenWidth - width
+  const newY = 0
+
   if (win) {
-    const w = Number(width)
-    const h = Number(height)
+    win.setBounds({
+      width,
+      height,
+      x: newX,
+      y: newY
+    })
+  }
+})
 
-    // Update window size dynamically
-    win.setSize(w, h)
-
-    // Reposition window to top-right after resizing
-    const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize
-    win.setPosition(screenWidth - w, 0)
+// Listen for close window requests from renderer
+ipcMain.on('close-window', () => {
+  if (win) {
+    win.close()
+    win = null
   }
 })
 
 
 
+// Quit app when all windows closed (except macOS)
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -82,12 +121,18 @@ app.on('window-all-closed', () => {
   }
 })
 
+// Re-create window on macOS when dock icon clicked and no windows open
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
 })
 
+// Create window when app ready
 app.whenReady().then(() => {
   createWindow()
 })
+ipcMain.on('close-window', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (window) window.close();
+});

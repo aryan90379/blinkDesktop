@@ -1,0 +1,50 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&display=swap");
+
+$clr-green: #01c3a8;
+
+section {
+  width: 100%;
+  max-width: 30em;
+  margin-inline: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0;
+
+  .card {
+    position: relative;
+    max-width: 15rem;
+    min-height: 6rem;
+    width: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0.063em 0.75em 1.563em rgba(0, 0, 0, 0.78);
+    border-radius: 2rem;
+    background: radial-gradient(
+      ellipse at right top,
+      #107667ed 0%,
+      #151419 47%,
+      #151419 100%
+    );
+    color: #fff;
+    font-family: "Nunito", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 1.5rem;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 2rem;
+      border: 0.15rem solid transparent;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      z-index: -1;
+    }
+  }
+}

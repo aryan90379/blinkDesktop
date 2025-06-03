@@ -1,53 +1,80 @@
-import { ipcMain, app, BrowserWindow, screen } from "electron";
-import { createRequire } from "node:module";
+import { ipcMain, screen, app, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
+let win = null;
 function createWindow() {
   const display = screen.getPrimaryDisplay();
-  const { width: screenWidth, height: screenHeight } = display.workAreaSize;
-  let windowWidth = 300;
-  let windowHeight = 200;
-  let windowX = screenWidth - windowWidth;
-  let windowY = 0;
+  const { width: screenWidth } = display.workAreaSize;
+  const winWidth = 300;
+  const winHeight = 300;
+  const windowX = screenWidth - winWidth;
+  const windowY = 0;
   win = new BrowserWindow({
-    width: windowWidth,
-    height: windowHeight,
+    width: winWidth,
+    height: winHeight,
     x: windowX,
     y: windowY,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
-    resizable: false,
+    resizable: true,
     skipTaskbar: true,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    focusable: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    type: "toolbar",
+    minWidth: 150,
+    // ⬅️ Set minimum width
+    minHeight: 250,
+    // ⬅️ Set minimum height
+    maxWidth: 150,
+    // ⬅️ Set maximum width
+    maxHeight: 250,
+    // ⬅️ Set maximum height
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs")
+      preload: path.join(__dirname, "preload.js")
     }
   });
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
+  win.setAlwaysOnTop(true, "screen-saver");
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.setFullScreenable(false);
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
+  win.webContents.on("did-finish-load", () => {
+    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  win.on("closed", () => {
+    win = null;
+  });
 }
-ipcMain.on("set-window-size", (event, { width, height }) => {
+const ASPECT_RATIO = 4 / 3;
+ipcMain.on("resize-window", (_event, { width }) => {
+  const height = Math.round(width / ASPECT_RATIO);
+  const display = screen.getPrimaryDisplay();
+  const { width: screenWidth } = display.workAreaSize;
+  const newX = screenWidth - width;
+  const newY = 0;
   if (win) {
-    const w = Number(width);
-    const h = Number(height);
-    win.setSize(w, h);
-    const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
-    win.setPosition(screenWidth - w, 0);
+    win.setBounds({
+      width,
+      height,
+      x: newX,
+      y: newY
+    });
+  }
+});
+ipcMain.on("close-window", () => {
+  if (win) {
+    win.close();
+    win = null;
   }
 });
 app.on("window-all-closed", () => {
@@ -63,6 +90,10 @@ app.on("activate", () => {
 });
 app.whenReady().then(() => {
   createWindow();
+});
+ipcMain.on("close-window", (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (window) window.close();
 });
 export {
   MAIN_DIST,
