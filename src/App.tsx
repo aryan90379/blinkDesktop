@@ -16,11 +16,10 @@ function App() {
   const [close, setClose] = useState(false)
 
   const windowWidth = 164
-  const [selectedColor, setSelectedColor] = useState<string>('transparent') // premium dark default bg
+  const [selectedColor, setSelectedColor] = useState<string>('rgba(30 30 30 / 0.85)') // premium dark default bg
   const [settingsHover, setSettingsHover] = useState(false) // to track hover on settings button
 
   const premiumColors = [
-    'transparent',                        // ✅ add this as the first option
     'rgba(30 30 30 / 0.85)',              // dark default
     'rgba(255 99 71 / 0.8)',              // Tomato
     'rgba(60 179 113 / 0.8)',             // Sea Green
