@@ -1,4 +1,4 @@
-import { ipcMain, screen, app, BrowserWindow } from "electron";
+import { app, ipcMain, screen, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -6,6 +6,12 @@ process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath("exe")
+  });
+});
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win = null;
 function createWindow() {
@@ -28,13 +34,13 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     type: "toolbar",
-    minWidth: 150,
+    minWidth: 140,
     // ⬅️ Set minimum width
-    minHeight: 250,
+    minHeight: 120,
     // ⬅️ Set minimum height
-    maxWidth: 150,
+    maxWidth: 400,
     // ⬅️ Set maximum width
-    maxHeight: 250,
+    maxHeight: 500,
     // ⬅️ Set maximum height
     webPreferences: {
       preload: path.join(__dirname, "preload.js")

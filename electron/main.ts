@@ -12,6 +12,12 @@ process.env.APP_ROOT = path.join(__dirname, '..')
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
+app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath('exe'),
+  })
+})
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
@@ -44,10 +50,10 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     type: 'toolbar',
-    minWidth: 150,   // ⬅️ Set minimum width
-    minHeight: 250,  // ⬅️ Set minimum height
-    maxWidth: 150,   // ⬅️ Set maximum width
-    maxHeight: 250,  // ⬅️ Set maximum height
+    minWidth: 140,   // ⬅️ Set minimum width
+    minHeight: 120,  // ⬅️ Set minimum height
+    maxWidth: 400,   // ⬅️ Set maximum width
+    maxHeight: 500,  // ⬅️ Set maximum height
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }

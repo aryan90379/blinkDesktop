@@ -5,6 +5,7 @@
   "type": "module",
   "build": {
     "appId": "com.yourapp.blinkbuddy",
+    "icon": "/icon",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -39,6 +40,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-web": "^0.45.0",
     "@lottiefiles/react-lottie-player": "^3.6.0",
     "@tailwindcss/postcss": "^4.1.8",
     "lottie-react": "^2.4.1",
@@ -66,7 +68,8 @@
     "typescript": "^5.2.2",
     "vite": "^6.3.5",
     "vite-plugin-electron": "^0.28.6",
-    "vite-plugin-electron-renderer": "^0.14.5"
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vite-plugin-static-copy": "^3.0.0"
   },
   "main": "dist-electron/main.js"
 }
