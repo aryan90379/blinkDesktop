@@ -1,4 +1,3 @@
-// main.ts
 import { app, BrowserWindow, screen, ipcMain } from 'electron'
 // import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -34,8 +33,9 @@ function createWindow() {
 
   const windowX = screenWidth - winWidth
   const windowY = 0
- 
 
+  // Icon path added here:
+  const iconPath = path.join(process.env.APP_ROOT!, 'public', 'icon.ico')
 
   win = new BrowserWindow({
     width: winWidth,
@@ -50,10 +50,11 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     type: 'toolbar',
-    minWidth: 140,   // ⬅️ Set minimum width
-    minHeight: 120,  // ⬅️ Set minimum height
-    maxWidth: 400,   // ⬅️ Set maximum width
-    maxHeight: 500,  // ⬅️ Set maximum height
+    minWidth: 140,
+    minHeight: 120,
+    maxWidth: 400,
+    maxHeight: 500,
+    icon: iconPath, // ← Here is the icon
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -66,7 +67,8 @@ function createWindow() {
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
 
   win.setFullScreenable(false)
-//  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
+
   // Load URL or file depending on dev or prod
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -117,8 +119,6 @@ ipcMain.on('close-window', () => {
   }
 })
 
-
-
 // Quit app when all windows closed (except macOS)
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -138,7 +138,8 @@ app.on('activate', () => {
 app.whenReady().then(() => {
   createWindow()
 })
+
 ipcMain.on('close-window', (event) => {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (window) window.close();
-});
+  const window = BrowserWindow.fromWebContents(event.sender)
+  if (window) window.close()
+})

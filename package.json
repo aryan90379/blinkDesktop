@@ -3,35 +3,22 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "build": {
     "appId": "com.yourapp.blinkbuddy",
-    "icon": "/icon",
+    "icon": "public/icon.ico", 
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
+      "public/icon.ico",     
       "package.json"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "public" 
     },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "zip"
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ]
-    }
+    "mac": { "target": ["dmg", "zip"] },
+    "win": { "target": ["nsis", "zip"] },
+    "linux": { "target": ["AppImage", "deb"] }
   },
   "scripts": {
     "dev": "vite",
@@ -70,6 +57,5 @@
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5",
     "vite-plugin-static-copy": "^3.0.0"
-  },
-  "main": "dist-electron/main.js"
+  }
 }
