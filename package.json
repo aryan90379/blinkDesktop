@@ -5,20 +5,35 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "build": {
-    "appId": "com.yourapp.blinkbuddy",
-    "icon": "public/icon.ico", 
+    "appId": "blinkbuddy",
+    "icon": "public/icon.ico",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "public/icon.ico",     
+      "public/icon.ico",
       "package.json"
     ],
     "directories": {
-      "buildResources": "public" 
+      "buildResources": "public"
     },
-    "mac": { "target": ["dmg", "zip"] },
-    "win": { "target": ["nsis", "zip"] },
-    "linux": { "target": ["AppImage", "deb"] }
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "scripts": {
     "dev": "vite",
@@ -29,10 +44,12 @@
   "dependencies": {
     "@lottiefiles/dotlottie-web": "^0.45.0",
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@react-hook/window-size": "^3.1.1",
     "@tailwindcss/postcss": "^4.1.8",
     "lottie-react": "^2.4.1",
     "postcss": "^8.5.4",
     "react": "^18.2.0",
+    "react-confetti": "^6.4.0",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
     "react-icons": "^5.5.0",

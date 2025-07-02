@@ -35,7 +35,7 @@ function createWindow() {
   const windowY = 0
 
   // Icon path added here:
-  const iconPath = path.join(process.env.APP_ROOT!, 'public', 'icon.ico')
+  const iconPath = path.join(process.env.APP_ROOT!, 'public','build', 'icon.ico')
 
   win = new BrowserWindow({
     width: winWidth,
@@ -50,8 +50,8 @@ function createWindow() {
     alwaysOnTop: true,
     hasShadow: false,
     type: 'toolbar',
-    minWidth: 140,
-    minHeight: 120,
+    minWidth: 160,
+    minHeight: 270,
     maxWidth: 400,
     maxHeight: 500,
     icon: iconPath, // ← Here is the icon
@@ -134,10 +134,20 @@ app.on('activate', () => {
   }
 })
 
-// Create window when app ready
 app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath('exe'),
+  })
+
+  app.setName('BlinkBuddy')
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('Blinkbuddy')
+  }
+
   createWindow()
 })
+
 
 ipcMain.on('close-window', (event) => {
   const window = BrowserWindow.fromWebContents(event.sender)

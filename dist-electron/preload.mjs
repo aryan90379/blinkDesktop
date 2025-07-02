@@ -1,1 +1,5 @@
-"use strict";const e=require("electron");e.contextBridge.exposeInMainWorld("electronAPI",{closeWindow:()=>e.ipcRenderer.send("close-window")});
+"use strict";
+const electron = require("electron");
+electron.contextBridge.exposeInMainWorld("electronAPI", {
+  closeWindow: () => electron.ipcRenderer.send("close-window")
+});

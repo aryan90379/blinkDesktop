@@ -1,75 +1,115 @@
-import { app as t, ipcMain as d, screen as h, BrowserWindow as w } from "electron";
-import { fileURLToPath as R } from "node:url";
-import o from "node:path";
-const m = o.dirname(R(import.meta.url));
-process.env.APP_ROOT = o.join(m, "..");
-const c = process.env.VITE_DEV_SERVER_URL, O = o.join(process.env.APP_ROOT, "dist-electron"), u = o.join(process.env.APP_ROOT, "dist");
-t.whenReady().then(() => {
-  t.setLoginItemSettings({
-    openAtLogin: !0,
-    path: t.getPath("exe")
+import { app, ipcMain, screen, BrowserWindow } from "electron";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+process.env.APP_ROOT = path.join(__dirname, "..");
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath("exe")
   });
 });
-process.env.VITE_PUBLIC = c ? o.join(process.env.APP_ROOT, "public") : u;
-let e = null;
-function f() {
-  const s = h.getPrimaryDisplay(), { width: n } = s.workAreaSize, i = 300, r = 300, a = n - i, l = 0, p = o.join(process.env.APP_ROOT, "public", "icon.ico");
-  e = new w({
-    width: i,
-    height: r,
-    x: a,
-    y: l,
-    frame: !1,
-    transparent: !0,
-    resizable: !0,
-    skipTaskbar: !0,
-    focusable: !0,
-    alwaysOnTop: !0,
-    hasShadow: !1,
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+let win = null;
+function createWindow() {
+  const display = screen.getPrimaryDisplay();
+  const { width: screenWidth } = display.workAreaSize;
+  const winWidth = 300;
+  const winHeight = 300;
+  const windowX = screenWidth - winWidth;
+  const windowY = 0;
+  const iconPath = path.join(process.env.APP_ROOT, "public", "build", "icon.ico");
+  win = new BrowserWindow({
+    width: winWidth,
+    height: winHeight,
+    x: windowX,
+    y: windowY,
+    frame: false,
+    transparent: true,
+    resizable: true,
+    skipTaskbar: true,
+    focusable: true,
+    alwaysOnTop: true,
+    hasShadow: false,
     type: "toolbar",
-    minWidth: 140,
-    minHeight: 120,
+    minWidth: 160,
+    minHeight: 270,
     maxWidth: 400,
     maxHeight: 500,
-    icon: p,
+    icon: iconPath,
     // ← Here is the icon
     webPreferences: {
-      preload: o.join(m, "preload.js")
+      preload: path.join(__dirname, "preload.js")
     }
-  }), e.setAlwaysOnTop(!0, "screen-saver"), e.setVisibleOnAllWorkspaces(!0, { visibleOnFullScreen: !0 }), e.setFullScreenable(!1), c ? e.loadURL(c) : e.loadFile(o.join(u, "index.html")), e.webContents.on("did-finish-load", () => {
-    e == null || e.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), e.on("closed", () => {
-    e = null;
+  });
+  win.setAlwaysOnTop(true, "screen-saver");
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.setFullScreenable(false);
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+  win.webContents.on("did-finish-load", () => {
+    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  win.on("closed", () => {
+    win = null;
   });
 }
-const P = 4 / 3;
-d.on("resize-window", (s, { width: n }) => {
-  const i = Math.round(n / P), r = h.getPrimaryDisplay(), { width: a } = r.workAreaSize, l = a - n;
-  e && e.setBounds({
-    width: n,
-    height: i,
-    x: l,
-    y: 0
+const ASPECT_RATIO = 4 / 3;
+ipcMain.on("resize-window", (_event, { width }) => {
+  const height = Math.round(width / ASPECT_RATIO);
+  const display = screen.getPrimaryDisplay();
+  const { width: screenWidth } = display.workAreaSize;
+  const newX = screenWidth - width;
+  const newY = 0;
+  if (win) {
+    win.setBounds({
+      width,
+      height,
+      x: newX,
+      y: newY
+    });
+  }
+});
+ipcMain.on("close-window", () => {
+  if (win) {
+    win.close();
+    win = null;
+  }
+});
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
+});
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath("exe")
   });
+  app.setName("BlinkBuddy");
+  if (process.platform === "win32") {
+    app.setAppUserModelId("Blinkbuddy");
+  }
+  createWindow();
 });
-d.on("close-window", () => {
-  e && (e.close(), e = null);
-});
-t.on("window-all-closed", () => {
-  process.platform !== "darwin" && (t.quit(), e = null);
-});
-t.on("activate", () => {
-  w.getAllWindows().length === 0 && f();
-});
-t.whenReady().then(() => {
-  f();
-});
-d.on("close-window", (s) => {
-  const n = w.fromWebContents(s.sender);
-  n && n.close();
+ipcMain.on("close-window", (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (window) window.close();
 });
 export {
-  O as MAIN_DIST,
-  u as RENDERER_DIST,
-  c as VITE_DEV_SERVER_URL
+  MAIN_DIST,
+  RENDERER_DIST,
+  VITE_DEV_SERVER_URL
 };

@@ -2,8 +2,14 @@ import './App.css'
 import { FiX } from 'react-icons/fi'
 import { useEffect, useRef, useState } from 'react'
 import eyeGif from './assets/bravo.webm'
+import logo from './assets/icon.png'
+import audio from './assets/alarm.wav'
+import stopAudioFile from './assets/alarmStop.wav'
 // import eyeGif from './assets/eye2.webm'
 // import eyeGif from './assets/eye3.webm'
+import Confetti from 'react-confetti';
+
+import { useWindowSize } from '@react-hook/window-size';
 
 const eyeSizeStyles = {
   sm: '120px',
@@ -14,19 +20,26 @@ const eyeSizeStyles = {
 
 function App() {
   const [hover, setHover] = useState(false)
+  const [showPomo, setShowPomo] = useState(true)
   const [Drag, setDrag] = useState(false)
   const [settings, setSettings] = useState(false)
   const [timerShow, setTimerShow] = useState(false)
+  //confetti
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [width, height] = useWindowSize();
 
+  // 
   const videoRef = useRef<HTMLVideoElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const [close, setClose] = useState(false)
+  const [pomo, setPomo] = useState(false)
   const [visible, setVisible] = useState(true)
   const durationOptions = [5, 10, 15, 20, 25]
   const windowWidth = 164
 
   const premiumColors = [
+    'transparent',        // transparent
     'rgba(24, 24, 27, 0.8)',        // Onyx Black
     'rgba(234, 202, 255, 0.35)',    // Soft Lavender
     'rgba(217, 136, 128, 0.4)',     // Rose Gold
@@ -36,6 +49,118 @@ function App() {
     'rgba(64, 224, 208, 0.3)',      // Turquoise Mist
     'rgba(255, 255, 255, 0.08)',    // Subtle Frosted
   ]
+  const messages = [
+    "Remember the 20-20-20 rule: Look 20 feet away for 20 seconds every 20 minutes.",
+    "Give your eyes a break—look into the distance for a few seconds.",
+    "It's time to rest your eyes and reset your focus.",
+    "Staring too long? Take a moment to blink and look away.",
+    "Reduce eye strain—look up and around for 20 seconds.",
+    "Keep your eyes healthy: take regular screen breaks.",
+    "A short break now can prevent long-term eye discomfort.",
+    "Blink consciously—hydrated eyes are healthier eyes.",
+    "Protect your vision. Pause and look far for a few seconds.",
+    "Give your eyes some rest—they’re working hard.",
+    "Taking a moment to relax your eyes helps prevent fatigue.",
+    "Pause. Blink. Refocus. Your eyes will thank you.",
+    "Good vision habits begin with short, regular breaks.",
+    "Long screen time? Look at something 20 feet away.",
+    "Maintaining eye comfort starts with mindful breaks.",
+    "Don’t ignore eye strain—look away now.",
+    "Your focus needs recovery. Take a brief eye break.",
+    "Healthy eyes need movement—look around.",
+    "Looking into the distance helps reset your vision.",
+    "It’s okay to pause. Your vision matters.",
+    "A 20-second break now avoids strain later.",
+    "Your screen can wait—focus on your well-being.",
+    "Prevent digital eye strain with a short break.",
+    "Short breaks help you work better and see better.",
+    "Blink often and rest your eyes regularly.",
+    "Healthy screen habits include time for eye care.",
+    "Your productivity improves when your eyes are rested.",
+    "Look out a window or across the room for 20 seconds.",
+    "Protect your eyes like you protect your time.",
+    "Vision is precious. Care for it consistently.",
+    "Even a short break can refresh tired eyes.",
+    "Focus on something far away, then return.",
+    "Just 20 seconds of rest improves your eye comfort.",
+    "BlinkBuddy Reminder: It's time to look away.",
+    "Keeping your eyes relaxed improves focus and clarity.",
+    "Let your eyes reset. Take a 20-second breather.",
+    "Avoid dry eyes—pause and blink often.",
+    "A simple break supports long-term eye health.",
+    "Keep your vision clear with regular screen breaks.",
+    "Break time for your eyes—stay consistent.",
+    "Frequent blinking keeps your vision comfortable.",
+    "Working long hours? Rest your eyes now.",
+    "Support your eye muscles—look into the distance.",
+    "Eyes feeling tired? Look away for clarity.",
+    "Short eye breaks help prevent long-term strain.",
+    "Pause the screen. Restore your visual focus.",
+    "Give your eyes the care they deserve.",
+    "Prevent screen fatigue with consistent habits.",
+    "Healthy habits start with small changes—like this one.",
+    "Be kind to your eyes. Take a moment now."
+  ];
+
+
+
+  //Pomodoro starts
+  function formatTime(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+
+  const pomodoroOptions = [1 / 2, ...Array.from({ length: 12 }, (_, i) => (i + 1) * 5)];
+
+  const [pomodoroDuration, setPomodoroDuration] = useState<number>(
+    getSafeNumber('pomodoroDuration', 25)
+  ); // default 25 min
+
+  const [breakDuration, setBreakDuration] = useState<number>(
+    getSafeNumber('breakDuration', 5)
+  ); // default 5 min
+
+  const [isPomodoroRunning, setIsPomodoroRunning] = useState<boolean>(false);
+  const [isOnBreak, setIsOnBreak] = useState<boolean>(false);
+  const [timeLeft, setTimeLeft] = useState<number>(pomodoroDuration * 60); // seconds
+
+
+
+  useEffect(() => {
+    if (!isPomodoroRunning) return;
+
+    const beepAudio = new Audio(audio);
+    const stopAudio = new Audio(stopAudioFile);
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          if (isOnBreak) {
+            stopAudio.play().catch(() => { });
+            setIsOnBreak(false);
+            setShowConfetti(true);          // Show confetti when break ends (work session starts)
+            setTimeout(() => setShowConfetti(false), 4000);  // Hide after 4 seconds
+            return pomodoroDuration * 60;
+          } else {
+            beepAudio.play().catch(() => { });
+            setIsOnBreak(true);
+            setShowConfetti(true);          // Show confetti when work session ends (break starts)
+            setTimeout(() => setShowConfetti(false), 4000);  // Hide after 4 seconds
+            return breakDuration * 60;
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPomodoroRunning, isOnBreak, pomodoroDuration, breakDuration]);
+
+
+
+  // Pomodoro Ends
 
   // Load from localStorage on initial mount
   const [selectedColor, setSelectedColor] = useState<string>(
@@ -53,6 +178,47 @@ function App() {
   const [onDuration, setOnDuration] = useState<number>(getSafeNumber('onDuration', 5))
   const [offDuration, setOffDuration] = useState<number>(getSafeNumber('offDuration', 5))
   const [timer, setTimer] = useState<boolean>(localStorage.getItem('timer') === 'true')
+
+  // notification start
+
+  useEffect(() => {
+
+
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const startInterval = () => {
+      if (!intervalId) {
+        intervalId = setInterval(() => {
+          const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+          new Notification('👁️Blinkbuddy Reminder', {
+            body: randomMessage,
+            icon: logo, // Ensure this is resolved correctly
+          });
+        }, 20 * 60 * 1000); // every 10 seconds
+        // }, 6*1000); // every 10 seconds
+      }
+    };
+
+    if (Notification.permission === 'granted') {
+      startInterval();
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          startInterval();
+        }
+      });
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []);
+
+
+  // notifciation end
+
 
 
   // Persist to localStorage when values change
@@ -130,12 +296,14 @@ function App() {
 
   return (
     <>
+      {showConfetti && <Confetti width={width} height={height} numberOfPieces={300} />}
 
       <div
-        className={`app-wrapper ${visible ? '' : 'hidden'} rounded-md ${settings ? '' : 'draggable-window'}  w-screen h-screen flex flex-col items-center justify-center space-y-6`}
+        className={`app-wrapper ${visible ? '' : 'hidden'} rounded-md ${settings ? '' : 'draggable-window'}  w-screen h-screen flex flex-col items-center justify-center ${!close?'space-y-6':''}`}
         style={{ backgroundColor: selectedColor }}
       >
-        <div className={`${(Drag || close) ? 'draggable-window' : ''}  hover:border-2 p-2 border-white rounded-xl`}>
+        
+        <div className={`${(Drag || close) ? 'draggable-window' : ''}  hover:border-2 ${!close?'p-2':''} border-white rounded-3xl`}>
 
 
           <div
@@ -161,16 +329,19 @@ function App() {
 
 
               ) : (
-                <video
-                  ref={videoRef}
-                  src={eyeGif}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  style={{ transform: 'rotate(4deg)' }}
-                  className="rounded-full object-contain"
-                />
+                <>
+                  <video
+                    ref={videoRef}
+                    src={eyeGif}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    style={{ transform: 'rotate(4deg)' }}
+                    className="rounded-full object-contain"
+                  />
+
+                </>
 
                 // <>
                 //   <img
@@ -186,17 +357,18 @@ function App() {
 
 
 
+
+
             {/* Settings button + tooltip on hover */}
             {hover && !close && (
               <div
                 className="absolute top-1 right-1 flex items-center space-x-2"
-              
               >
 
 
                 {/* Settings Button */}
                 <button
-                  className="cursor-pointer text-white bg-black/40 hover:bg-black/70 rounded-full p-1 flex items-center justify-center transition duration-200"
+                  className="cursor-pointer text-white bg-black hover:bg-black/20 rounded-full p-1 flex items-center justify-center transition duration-200"
                   onClick={toggleSettings}
                   aria-expanded={settings}
                   aria-label="Toggle settings"
@@ -214,12 +386,19 @@ function App() {
             )}
             {/* --------------------------------TIMER --------------------------------*/}
             {hover && !close && (
-              <div className='absolute bottom-1  right-1 '>
+              <div className='absolute bottom-1  right-1 
+              
+              '
+                onClick={() => setPomo(false)}
+              >
                 <button className='cursor-pointer'>
                   {
                     timerShow ? (
-                      <div onClick={() => setTimerShow(false)}
-                        className='bg-black/20  hover:bg-black/45 p-1 rounded-full'
+                      <div onClick={() => {
+                        setTimerShow(false)
+
+                      }}
+                        className='bg-black  hover:bg-black/45 p-1 rounded-full'
                       >
 
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={16} height={16} color={"#02d024"} fill={"none"} >
@@ -229,7 +408,7 @@ function App() {
                       </div>
                     ) : (
                       <div onClick={() => setTimerShow(true)}
-                        className='bg-black/20 hover:bg-black/45 p-1 rounded-full'
+                        className='bg-black hover:bg-black/45 p-1 rounded-full'
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={16} height={16} color={"#d0021b"} fill={"none"} >
                           <path d="M11.0809 13.152L8 7L13.4196 11.2796C14.1901 11.888 14.1941 13.0472 13.4277 13.6607C12.6614 14.2743 11.5189 14.0266 11.0809 13.152Z" stroke="#d0021b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -245,6 +424,8 @@ function App() {
             )
             }
 
+
+
             {/* CANCEL BUTTON */}
             {
               hover && !close && (
@@ -252,13 +433,126 @@ function App() {
                   onClick={() => {
                     setClose(true);
                   }}
-                  className='absolute top-1 left-1 bg-black/20 hover:bg-black/45 p-1 rounded-full cursor-pointer '>
+                  className='absolute top-1 left-1 bg-black hover:bg-black/45 p-1 rounded-full cursor-pointer '>
 
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={16} height={16} color={"#d0021b"} fill={"none"} >
                     <path d="M10.2471 6.7402C11.0734 7.56657 11.4866 7.97975 12.0001 7.97975C12.5136 7.97975 12.9268 7.56658 13.7531 6.74022L13.7532 6.7402L15.5067 4.98669L15.5067 4.98668C15.9143 4.5791 16.1182 4.37524 16.3302 4.25283C17.3966 3.63716 18.2748 4.24821 19.0133 4.98669C19.7518 5.72518 20.3628 6.60345 19.7472 7.66981C19.6248 7.88183 19.421 8.08563 19.0134 8.49321L17.26 10.2466C16.4336 11.073 16.0202 11.4864 16.0202 11.9999C16.0202 12.5134 16.4334 12.9266 17.2598 13.7529L19.0133 15.5065C19.4209 15.9141 19.6248 16.1179 19.7472 16.3299C20.3628 17.3963 19.7518 18.2746 19.0133 19.013C18.2749 19.7516 17.3965 20.3626 16.3302 19.7469C16.1182 19.6246 15.9143 19.4208 15.5067 19.013L13.7534 17.2598L13.7533 17.2597C12.9272 16.4336 12.5136 16.02 12.0001 16.02C11.4867 16.02 11.073 16.4336 10.2469 17.2598L10.2469 17.2598L8.49353 19.013C8.0859 19.4208 7.88208 19.6246 7.67005 19.7469C6.60377 20.3626 5.72534 19.7516 4.98693 19.013C4.2484 18.2746 3.63744 17.3963 4.25307 16.3299C4.37549 16.1179 4.5793 15.9141 4.98693 15.5065L6.74044 13.7529C7.56681 12.9266 7.98 12.5134 7.98 11.9999C7.98 11.4864 7.5666 11.073 6.74022 10.2466L4.98685 8.49321C4.57928 8.08563 4.37548 7.88183 4.25307 7.66981C3.63741 6.60345 4.24845 5.72518 4.98693 4.98669C5.72542 4.24821 6.60369 3.63716 7.67005 4.25283C7.88207 4.37524 8.08593 4.5791 8.49352 4.98668L8.49353 4.98669L10.2471 6.7402Z" stroke="#d0021b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </div>
 
+              )
+            }
+
+            {
+              hover && !close && (
+                <div
+                  className='absolute bottom-1 left-1 bg-black hover:bg-black/45 p-1 rounded-full cursor-pointer '
+                  onClick={() => setTimerShow(false)}
+                >
+                  {pomo ?
+
+                    (
+
+                      <div
+                        onClick={() => setPomo(false)}
+                        className="relative group cursor-pointer"
+                      >
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                          Pomodoro
+                        </div>
+
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="16"
+                          height="16"
+                          color="#12de23"
+                          fill="none"
+                        >
+                          <path
+                            d="M4 3H20"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M5.5 3V5.03039C5.5 6.27227 6.07682 7.4437 7.06116 8.20089L12 12L16.9388 8.20089C17.9232 7.44371 18.5 6.27227 18.5 5.03039V3"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M5.5 21V18.9696C5.5 17.7277 6.07682 16.5563 7.06116 15.7991L12 12L16.9388 15.7991C17.9232 16.5563 18.5 17.7277 18.5 18.9696V21"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M4 21H20"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                        </svg>
+                      </div>
+                    ) :
+                    (
+                      <div
+                        onClick={() => setPomo(true)}
+                        className="relative group cursor-pointer"
+                      >
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                          Pomodoro
+                        </div>
+
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="16"
+                          height="16"
+                          color="#d0021b"
+                          fill="none"
+                        >
+                          <path
+                            d="M4 3H20"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M5.5 3V5.03039C5.5 6.27227 6.07682 7.4437 7.06116 8.20089L12 12L16.9388 8.20089C17.9232 7.44371 18.5 6.27227 18.5 5.03039V3"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M5.5 21V18.9696C5.5 17.7277 6.07682 16.5563 7.06116 15.7991L12 12L16.9388 15.7991C17.9232 16.5563 18.5 17.7277 18.5 18.9696V21"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                          <path
+                            d="M4 21H20"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          ></path>
+                        </svg>
+                      </div>
+                    )
+
+
+
+                  }
+                </div>
               )
             }
 
@@ -270,7 +564,195 @@ function App() {
 
 
         </div>
-        {timerShow && !close  && (
+          {!isPomodoroRunning && !pomo && (
+            <div className="absolute bottom-2/3 left-[4rem] transition duration-300 z-20">
+              {close && (
+                <div
+                  className="relative group"
+                >
+                  <div
+                    className="absolute bottom-1 left-1 no-drag bg-white/10 hover:bg-white/20 backdrop-blur-lg p-1.5 rounded-full cursor-pointer border border-/20 shadow-md hover:shadow-xl transition duration-200"
+                    onClick={() => setTimerShow(false)}
+                  >
+                    <div
+                      onClick={() => setPomo(!pomo)}
+                      className="relative group cursor-pointer"
+                    >
+                     
+
+                      {/* Icon */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        className="text-white transition-transform duration-200 group-hover:scale-110"
+                      >
+                        <path
+                          d="M4 3H20"
+                          stroke={pomo ? "#12de23" : "#d0021b"}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M5.5 3V5.03039C5.5 6.27227 6.07682 7.4437 7.06116 8.20089L12 12L16.9388 8.20089C17.9232 7.44371 18.5 6.27227 18.5 5.03039V3"
+                          stroke={pomo ? "#12de23" : "#d0021b"}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M5.5 21V18.9696C5.5 17.7277 6.07682 16.5563 7.06116 15.7991L12 12L16.9388 15.7991C17.9232 16.5563 18.5 17.7277 18.5 18.9696V21"
+                          stroke={pomo ? "#12de23" : "#d0021b"}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M4 21H20"
+                          stroke={pomo ? "#12de23" : "#d0021b"}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+
+       
+
+        {pomo && (
+          <div className="pomodoro-container relative no-drag bg-black/30 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md text-white flex flex-col items-center space-y-6 select-none border border-white/10">
+
+            {/* ❌ Cross Close Button */}
+            <button
+              onClick={() => setPomo(false)}
+              className="absolute top-3 right-3 text-white hover:text-red-400 transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            {/* Duration Selectors */}
+            <div className="flex gap-6 w-full justify-center">
+              {/* Work Duration */}
+              <div className="flex flex-col items-center">
+                <label htmlFor="pomodoroDuration" className="mb-1 text-sm font-semibold text-white/90">
+                  Work Duration
+                </label>
+                <select
+                  id="pomodoroDuration"
+                  className="rounded px-2 py-1 bg-black/60 text-white border border-white/10 focus:outline-none"
+                  value={pomodoroDuration}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setPomodoroDuration(val);
+                    if (!isPomodoroRunning && !isOnBreak) {
+                      setTimeLeft(val * 60);
+                    }
+                    localStorage.setItem('pomodoroDuration', val.toString());
+                  }}
+                >
+                  {pomodoroOptions.map((d) => (
+                    <option key={d} value={d}>{d} min</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Break Duration */}
+              <div className="flex flex-col items-center">
+                <label htmlFor="breakDuration" className="mb-1 text-sm font-semibold text-blue-300">
+                  Break Duration
+                </label>
+                <select
+                  id="breakDuration"
+                  className="rounded px-2 py-1 bg-black/60 text-white border border-blue-400/20 focus:outline-none"
+                  value={breakDuration}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setBreakDuration(val);
+                    if (!isPomodoroRunning && isOnBreak) {
+                      setTimeLeft(val * 60);
+                    }
+                    localStorage.setItem('breakDuration', val.toString());
+                  }}
+                >
+                  {pomodoroOptions.map((d) => (
+                    <option key={d} value={d}>{d} min</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="flex gap-4">
+              {isPomodoroRunning ? (
+                <button
+                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold transition duration-200"
+                  onClick={() => setIsPomodoroRunning(false)}
+                >
+                  Pause
+                </button>
+              ) : (
+                <button
+                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded font-semibold transition duration-200"
+                  onClick={() => {
+                    setIsPomodoroRunning(true);
+                    setShowPomo(true);
+                  }}
+                >
+                  Start
+                </button>
+              )}
+              <button
+                className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded font-semibold transition duration-200"
+                onClick={() => {
+                  setIsPomodoroRunning(false);
+                  setIsOnBreak(false);
+                  setTimeLeft(pomodoroDuration * 60);
+                }}
+              >
+                Reset
+              </button>
+            </div>
+
+            <button
+              className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded font-semibold transition duration-200"
+              onClick={() => {
+                setShowPomo((prev) => !prev);
+                setIsPomodoroRunning(false);
+              }}
+            >
+              Visibility : {showPomo ? 'on' : 'off'}
+            </button>
+          </div>
+        )}
+
+
+
+
+
+
+        {timerShow && !close && (
           <>
             <button
               className={`relative px-5 py-2.5 rounded-full font-medium shadow-md border transition-all duration-300 ease-in-out 
@@ -278,12 +760,15 @@ function App() {
                   ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 text-white border-emerald-700 hover:shadow-emerald-500/50'
                   : 'bg-gradient-to-r from-rose-400 to-rose-600 text-white border-rose-700 hover:shadow-rose-500/50'} 
     hover:scale-105 hover:ring-2 hover:ring-opacity-50 cursor-pointer no-drag`}
-              onClick={() => setTimer(!timer)}
+              onClick={() => {
+                setTimer(!timer)
+                // setPomo(false)
+              }}
             >
 
               <span className="inline-flex items-center gap-2">
 
-                {timer  ? (
+                {timer ? (
                   <>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
@@ -421,6 +906,66 @@ function App() {
 
           </div>
         )}
+         {!pomo && showPomo && !timerShow && !settings && (
+
+
+          <div
+            className="relative group w-40 h-40 no-drag  rounded-full transition-all duration-150 active:scale-95 shadow-md hover:shadow-xl"
+
+            onClick={() => setIsPomodoroRunning(!isPomodoroRunning)}
+
+          >
+
+
+            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth="8"
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                stroke={isOnBreak ? "url(#blueGradient)" : "url(#greenGradient)"}
+                strokeWidth="8"
+                fill="none"
+                strokeDasharray={2 * Math.PI * 45}
+                strokeDashoffset={
+                  2 * Math.PI * 45 *
+                  (1 - timeLeft / ((isOnBreak ? breakDuration : pomodoroDuration) * 60))
+                }
+                strokeLinecap="round"
+                className="transition-all duration-500 "
+              />
+              <defs>
+                <linearGradient id="greenGradient" x1="1" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00ffcc" />
+                  <stop offset="100%" stopColor="#22c55e" />
+                </linearGradient>
+                <linearGradient id="blueGradient" x1="1" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#60a5fa" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* Centered Time Text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <div className="text-4xl font-mono tracking-wide text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+                {formatTime(timeLeft)}
+              </div>
+              <div className={`text-xs mt-1 font-semibold uppercase tracking-wide ${isOnBreak ? 'text-blue-400' : 'text-green-400'}`}>
+                {isOnBreak ? 'Break Time' : 'Focus Time'}
+              </div>
+            </div>
+          </div>
+
+        )
+        }
       </div>
 
     </>
