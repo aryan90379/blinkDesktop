@@ -2,6 +2,8 @@
   "name": "blinkbuddy",
   "private": true,
   "version": "0.0.0",
+    "author": "BlinkBuddy",  
+
   "type": "module",
   "main": "dist-electron/main.js",
   "build": {
@@ -24,9 +26,11 @@
     },
     "win": {
       "target": [
+        "msi",
         "nsis",
         "zip"
       ]
+
     },
     "linux": {
       "target": [
@@ -68,6 +72,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "less": "^4.3.0",
+    "sass": "^1.89.2",
     "sass-embedded": "^1.89.1",
     "typescript": "^5.2.2",
     "vite": "^6.3.5",

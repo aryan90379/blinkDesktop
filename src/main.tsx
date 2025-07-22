@@ -8,8 +8,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-// Use contextBridge
-window.electronAPI.onMainMessage((_event, message) => {
-  console.log('Main process says:', message);
-});
 

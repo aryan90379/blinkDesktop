@@ -17,11 +17,11 @@ let win = null;
 function createWindow() {
   const display = screen.getPrimaryDisplay();
   const { width: screenWidth } = display.workAreaSize;
-  const winWidth = 300;
-  const winHeight = 300;
+  const winWidth = 135;
+  const winHeight = 140;
   const windowX = screenWidth - winWidth;
-  const windowY = 0;
-  const iconPath = path.join(process.env.APP_ROOT, "public", "build", "icon.ico");
+  const windowY = 200;
+  const iconPath = path.join(process.env.APP_ROOT, "public", "build", "StoreLogo.png");
   win = new BrowserWindow({
     width: winWidth,
     height: winHeight,
@@ -30,22 +30,25 @@ function createWindow() {
     frame: false,
     transparent: true,
     resizable: true,
-    skipTaskbar: true,
+    skipTaskbar: false,
     focusable: true,
     alwaysOnTop: true,
+    // Keep window on top
     hasShadow: false,
-    type: "toolbar",
-    minWidth: 160,
-    minHeight: 270,
-    maxWidth: 400,
-    maxHeight: 500,
+    type: "normal",
+    minWidth: 100,
+    minHeight: 100,
+    maxWidth: 500,
+    maxHeight: 570,
     icon: iconPath,
     // ← Here is the icon
     webPreferences: {
       preload: path.join(__dirname, "preload.js")
     }
   });
-  win.setAlwaysOnTop(true, "screen-saver");
+  win.setAlwaysOnTop(true);
+  win.setFocusable(true);
+  win.focus();
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setFullScreenable(false);
   if (VITE_DEV_SERVER_URL) {

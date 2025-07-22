@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10">
+
+ 
+  <Identity Name="BlinkBuddy.Blinkbuddy"
+            Publisher="CN=3A02CBE0-14A5-44D8-9B1E-6613C9A95711"
+            Version="1.0.0.0"
+            PackageFamilyName="BlinkBuddy.Blinkbuddy_6911hb5788ydg"
+            ProcessorArchitecture="x64" />
+  
+  <Properties>
+    <DisplayName>BlinkBuddy</DisplayName>
+    <PublisherDisplayName>BlinkBuddy</PublisherDisplayName>
+    <Logo>public/StoreLogo.png</Logo>
+    <Description>Make your Eyes Healthier</Description>
+  </Properties>
+  
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <uap:Capability Name="autoLaunch" />
+  </Capabilities>
+
+  <Applications>
+    <Application Id="App" Executable="BlinkBuddy.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="BlinkBuddy" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="public/StoreLogo.scale-300.png"/>
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+</Package>

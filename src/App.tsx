@@ -1,15 +1,20 @@
 import './App.css'
-import { FiX } from 'react-icons/fi'
+
 import { useEffect, useRef, useState } from 'react'
-import eyeGif from './assets/bravo.webm'
+import greyEye from './assets/grey.webm'
+import blueEye from './assets/blue.webm'
+import pinkEye from './assets/pink.webm'
+import brownEye from './assets/brown.webm'
+import greenEye from './assets/green.webm'
+import purpleEye from './assets/purple.webm'
 import logo from './assets/icon.png'
 import audio from './assets/alarm.wav'
 import stopAudioFile from './assets/alarmStop.wav'
-// import eyeGif from './assets/eye2.webm'
-// import eyeGif from './assets/eye3.webm'
+import './Pallete.scss'
 import Confetti from 'react-confetti';
 
 import { useWindowSize } from '@react-hook/window-size';
+import SettingsComponent from './components/SettingsComponent'
 
 const eyeSizeStyles = {
   sm: '120px',
@@ -18,12 +23,75 @@ const eyeSizeStyles = {
   xl: '240px',
 }
 
+
+
 function App() {
   const [hover, setHover] = useState(false)
-  const [showPomo, setShowPomo] = useState(true)
+  const [showPomo, setShowPomo] = useState(false)
   const [Drag, setDrag] = useState(false)
   const [settings, setSettings] = useState(false)
   const [timerShow, setTimerShow] = useState(false)
+  const [showEyes, setShowEyes] = useState(false)
+
+
+
+
+  // EYE SELECT
+  const [selectedEye, setSelectedEye] = useState(blueEye);
+
+
+  const eyeOptions = [
+    {
+      name: 'Grey',
+      src: greyEye,
+      color: 'rgb(146,148,151)',
+      bgColor: 'rgba(146,148,151, 0.3)',
+    },
+    {
+      name: 'Blue',
+      src: blueEye,
+      color: 'rgb(122,181,227)',
+      bgColor: 'rgba(122,181,227, 0.3)',
+    },
+    {
+      name: 'Pink',
+      src: pinkEye,
+      color: 'rgb(226,103,166)',
+      bgColor: 'rgba(226,103,166, 0.3)',
+    },
+    {
+      name: 'Brown',
+      src: brownEye,
+      color: 'rgb(205,153,102)',
+      bgColor: 'rgba(205,153,102, 0.3)',
+    },
+    {
+      name: 'Green',
+      src: greenEye,
+      color: 'rgb(62,164,167)',
+      bgColor: 'rgba(62,164,167, 0.3)',
+    },
+    {
+      name: 'Purple',
+      src: purpleEye,
+      color: 'rgb(214,123,203)',
+      bgColor: 'rgba(214,123,203, 0.3)',
+    },
+  ];
+
+  const sortedEyeOptions = [...eyeOptions].sort((a, b) => {
+    if (a.src === selectedEye) return 1;  // Move selected eye to the last
+    if (b.src === selectedEye) return -1; // Move selected eye to the last
+    return 0;
+  });
+
+
+  const selectedOption = eyeOptions.find(opt => opt.src === selectedEye);
+  const eyeBgColor = selectedOption?.bgColor || 'transparent';
+
+  // 
+
+
   //confetti
   const [showConfetti, setShowConfetti] = useState(false);
   const [width, height] = useWindowSize();
@@ -112,7 +180,7 @@ function App() {
   }
 
 
-  const pomodoroOptions = [1 / 2, ...Array.from({ length: 12 }, (_, i) => (i + 1) * 5)];
+  const pomodoroOptions = [...Array.from({ length: 12 }, (_, i) => (i + 1) * 5)];
 
   const [pomodoroDuration, setPomodoroDuration] = useState<number>(
     getSafeNumber('pomodoroDuration', 25)
@@ -186,6 +254,7 @@ function App() {
 
     let intervalId: NodeJS.Timeout | null = null;
 
+
     const startInterval = () => {
       if (!intervalId) {
         intervalId = setInterval(() => {
@@ -245,7 +314,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (videoRef.current && videoRef.current.readyState >= 2) {
-        videoRef.current.playbackRate = 0.25
+        videoRef.current.playbackRate = 1
         clearInterval(interval)
       }
     }, 100)
@@ -299,29 +368,30 @@ function App() {
       {showConfetti && <Confetti width={width} height={height} numberOfPieces={300} />}
 
       <div
-        className={`app-wrapper ${visible ? '' : 'hidden'} rounded-md ${settings ? '' : 'draggable-window'}  w-screen h-screen flex flex-col items-center justify-center ${!close?'space-y-6':''}`}
+        className={`app-wrapper ${visible ? '' : 'hidden'} ${hover ? 'bg-amber-600' : ''}  rounded-md ${settings ? '' : 'draggable-window'}  w-screen h-screen flex flex-col items-center justify-center ${!close ? 'space-y-6' : ''}`}
         style={{ backgroundColor: selectedColor }}
       >
-        
-        <div className={`${(Drag || close) ? 'draggable-window' : ''}  hover:border-2 ${!close?'p-2':''} border-white rounded-3xl`}>
 
+        <div
+          className={`${(Drag || close) ? 'draggable-window' : ''} hover:border-2 ${!close ? 'p-2' : ''} border-white rounded-3xl`}
+          style={{ backgroundColor: eyeBgColor }}
+        >
 
           <div
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => {
               setHover(false)
             }}
-            className={`relative no-drag  rounded-2xl ${hover ? 'border-red-500 ' : ''}  flex flex-col items-center justify-center transition-transform duration-300 hover:scale-105`}
+            className={`relative no-drag   rounded-2xl ${hover ? 'border-red-500 ' : ''}  flex flex-col items-center justify-center transition-transform duration-300 hover:scale-105`}
             style={{
-              width: settings ? '300px' : '40vw', // Responsive based on window width
-              maxWidth: '500px',
+              width: settings ? '40vw' : '40vw', // Responsive based on window width
               minWidth: eyeSizeStyles[eyeSize],
             }}
 
           >
             {
               close ? (
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex  flex-col  items-center gap-4">
 
 
 
@@ -330,27 +400,37 @@ function App() {
 
               ) : (
                 <>
-                  <video
-                    ref={videoRef}
-                    src={eyeGif}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    style={{ transform: 'rotate(4deg)' }}
-                    className="rounded-full object-contain"
-                  />
+                  {!settings &&
+
+                    <video
+                      ref={videoRef}
+                      src={selectedEye}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      // style={{ transform: 'rotate(0deg)' }}
+                      // className="rounded-full object-contain bg-transparent"
+                      className={`rounded-full  -p-3 -m-5 object-contain w-[${eyeSizeStyles[eyeSize]}]`}
+                    />
+                  }
+                  {
+                    settings && (
+                      <SettingsComponent
+                        settings={settings}             // Control visibility
+                        setSettings={setSettings}       // Function to close settings
+                        eyeSize={eyeSize}               // Current eye size
+                        setEyeSize={setEyeSize}         // Function to change eye size
+                        premiumColors={premiumColors}  // List of available premium colors
+                        selectedColor={selectedColor}  // Current selected color
+                        setSelectedColor={setSelectedColor}  // Function to change selected color
+                      />
+                    )
+                  }
+
 
                 </>
 
-                // <>
-                //   <img
-                //     src={eyeGif}
-                //     alt="Eye animation"
-                //     className={`rounded-full p-5 object-contain w-[${eyeSizeStyles[eyeSize]}]`}
-                //   />
-
-                // </>
 
               )
             }
@@ -387,8 +467,8 @@ function App() {
             {/* --------------------------------TIMER --------------------------------*/}
             {hover && !close && (
               <div className='absolute bottom-1  right-1 
-              
-              '
+                
+                '
                 onClick={() => setPomo(false)}
               >
                 <button className='cursor-pointer'>
@@ -434,14 +514,41 @@ function App() {
                     setClose(true);
                   }}
                   className='absolute top-1 left-1 bg-black hover:bg-black/45 p-1 rounded-full cursor-pointer '>
-
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={16} height={16} color={"#d0021b"} fill={"none"} >
-                    <path d="M10.2471 6.7402C11.0734 7.56657 11.4866 7.97975 12.0001 7.97975C12.5136 7.97975 12.9268 7.56658 13.7531 6.74022L13.7532 6.7402L15.5067 4.98669L15.5067 4.98668C15.9143 4.5791 16.1182 4.37524 16.3302 4.25283C17.3966 3.63716 18.2748 4.24821 19.0133 4.98669C19.7518 5.72518 20.3628 6.60345 19.7472 7.66981C19.6248 7.88183 19.421 8.08563 19.0134 8.49321L17.26 10.2466C16.4336 11.073 16.0202 11.4864 16.0202 11.9999C16.0202 12.5134 16.4334 12.9266 17.2598 13.7529L19.0133 15.5065C19.4209 15.9141 19.6248 16.1179 19.7472 16.3299C20.3628 17.3963 19.7518 18.2746 19.0133 19.013C18.2749 19.7516 17.3965 20.3626 16.3302 19.7469C16.1182 19.6246 15.9143 19.4208 15.5067 19.013L13.7534 17.2598L13.7533 17.2597C12.9272 16.4336 12.5136 16.02 12.0001 16.02C11.4867 16.02 11.073 16.4336 10.2469 17.2598L10.2469 17.2598L8.49353 19.013C8.0859 19.4208 7.88208 19.6246 7.67005 19.7469C6.60377 20.3626 5.72534 19.7516 4.98693 19.013C4.2484 18.2746 3.63744 17.3963 4.25307 16.3299C4.37549 16.1179 4.5793 15.9141 4.98693 15.5065L6.74044 13.7529C7.56681 12.9266 7.98 12.5134 7.98 11.9999C7.98 11.4864 7.5666 11.073 6.74022 10.2466L4.98685 8.49321C4.57928 8.08563 4.37548 7.88183 4.25307 7.66981C3.63741 6.60345 4.24845 5.72518 4.98693 4.98669C5.72542 4.24821 6.60369 3.63716 7.67005 4.25283C7.88207 4.37524 8.08593 4.5791 8.49352 4.98668L8.49353 4.98669L10.2471 6.7402Z" stroke="#d0021b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#ff0000" fill="none">
+                    <path d="M19.439 15.439C20.3636 14.5212 21.0775 13.6091 21.544 12.955C21.848 12.5287 22 12.3155 22 12C22 11.6845 21.848 11.4713 21.544 11.045C20.1779 9.12944 16.6892 5 12 5C11.0922 5 10.2294 5.15476 9.41827 5.41827M6.74742 6.74742C4.73118 8.1072 3.24215 9.94266 2.45604 11.045C2.15201 11.4713 2 11.6845 2 12C2 12.3155 2.15201 12.5287 2.45604 12.955C3.8221 14.8706 7.31078 19 12 19C13.9908 19 15.7651 18.2557 17.2526 17.2526" stroke="#ff0000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M9.85786 10C9.32783 10.53 9 11.2623 9 12.0711C9 13.6887 10.3113 15 11.9289 15C12.7377 15 13.47 14.6722 14 14.1421" stroke="#ff0000" stroke-width="1.5" stroke-linecap="round"></path>
+                    <path d="M3 3L21 21" stroke="#ff0000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 </div>
 
               )
             }
+
+            {/* EYE BUTTON */}
+            {/* toggle eye visibility */}
+
+            {
+              hover && !close && (
+                <div
+                  onClick={() => {
+                    setShowEyes(!showEyes);
+                    // setShowPomo(!showPomo);
+
+                  }}
+                  className='absolute bottom-1 left-5/12
+                    bg-black hover:bg-black/45 p-1 rounded-full cursor-pointer '>
+
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#d0021b" fill="none">
+                    <path d="M21.544 11.045C21.848 11.4713 22 11.6845 22 12C22 12.3155 21.848 12.5287 21.544 12.955C20.1779 14.8706 16.6892 19 12 19C7.31078 19 3.8221 14.8706 2.45604 12.955C2.15201 12.5287 2 12.3155 2 12C2 11.6845 2.15201 11.4713 2.45604 11.045C3.8221 9.12944 7.31078 5 12 5C16.6892 5 20.1779 9.12944 21.544 11.045Z" stroke="#ff0000" stroke-width="1.5"></path>
+                    <path d="M15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12Z" stroke="#ff0000" stroke-width="1.5"></path>
+                  </svg>
+                </div>
+
+              )
+            }
+
+
+
 
             {
               hover && !close && (
@@ -560,81 +667,97 @@ function App() {
 
           </div>
 
-          {/* Color palette and controls below the eye container */}
+          {
+            hover && close && (
+              <div
+                onClick={() => {
+                  setClose(false);
+                }}
+                className='absolute no-drag top-1 left-1 bg-black/40 hover:bg-black/45 p-1 rounded-full cursor-pointer '>
 
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#00ec37" fill="none">
+                  <path d="M22 8C22 8 18 14 12 14C6 14 2 8 2 8" stroke="#00ec37" stroke-width="1.5" stroke-linecap="round"></path>
+                  <path d="M15 13.5L16.5 16" stroke="#00ec37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M20 11L22 13" stroke="#00ec37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M2 13L4 11" stroke="#00ec37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 13.5L7.5 16" stroke="#00ec37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+
+            )
+          }
 
         </div>
-          {!isPomodoroRunning && !pomo && (
-            <div className="absolute bottom-2/3 left-[4rem] transition duration-300 z-20">
-              {close && (
+        {!isPomodoroRunning && !pomo && (
+          <div className="absolute bottom-2/3 left-[4rem] transition duration-300 z-20">
+            {close && (
+              <div
+                className="relative group"
+              >
                 <div
-                  className="relative group"
+                  className="absolute bottom-1 left-1 bg0 no-drag bg-white/10 hover:bg-white/20 backdrop-blur-lg p-1.5 rounded-full cursor-pointer border border-/20 shadow-md hover:shadow-xl transition duration-200"
+                  onClick={() => setTimerShow(false)}
                 >
                   <div
-                    className="absolute bottom-1 left-1 no-drag bg-white/10 hover:bg-white/20 backdrop-blur-lg p-1.5 rounded-full cursor-pointer border border-/20 shadow-md hover:shadow-xl transition duration-200"
-                    onClick={() => setTimerShow(false)}
+                    onClick={() => setPomo(!pomo)}
+                    className="relative group cursor-pointer"
                   >
-                    <div
-                      onClick={() => setPomo(!pomo)}
-                      className="relative group cursor-pointer"
-                    >
-                     
 
-                      {/* Icon */}
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                        fill="none"
-                        className="text-white transition-transform duration-200 group-hover:scale-110"
-                      >
-                        <path
-                          d="M4 3H20"
-                          stroke={pomo ? "#12de23" : "#d0021b"}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.5 3V5.03039C5.5 6.27227 6.07682 7.4437 7.06116 8.20089L12 12L16.9388 8.20089C17.9232 7.44371 18.5 6.27227 18.5 5.03039V3"
-                          stroke={pomo ? "#12de23" : "#d0021b"}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M5.5 21V18.9696C5.5 17.7277 6.07682 16.5563 7.06116 15.7991L12 12L16.9388 15.7991C17.9232 16.5563 18.5 17.7277 18.5 18.9696V21"
-                          stroke={pomo ? "#12de23" : "#d0021b"}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M4 21H20"
-                          stroke={pomo ? "#12de23" : "#d0021b"}
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+
+                    {/* Icon */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      fill="none"
+                      className="text-white transition-transform duration-200 group-hover:scale-110"
+                    >
+                      <path
+                        d="M4 3H20"
+                        stroke={pomo ? "#12de23" : "#d0021b"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M5.5 3V5.03039C5.5 6.27227 6.07682 7.4437 7.06116 8.20089L12 12L16.9388 8.20089C17.9232 7.44371 18.5 6.27227 18.5 5.03039V3"
+                        stroke={pomo ? "#12de23" : "#d0021b"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M5.5 21V18.9696C5.5 17.7277 6.07682 16.5563 7.06116 15.7991L12 12L16.9388 15.7991C17.9232 16.5563 18.5 17.7277 18.5 18.9696V21"
+                        stroke={pomo ? "#12de23" : "#d0021b"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M4 21H20"
+                        stroke={pomo ? "#12de23" : "#d0021b"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
 
 
-       
 
         {pomo && (
-          <div className="pomodoro-container relative no-drag bg-black/30 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md text-white flex flex-col items-center space-y-6 select-none border border-white/10">
+          <div className="pomodoro-container  relative no-drag bg-black/40 backdrop-blur-lg rounded-lg p-3 w-full text-white flex flex-col items-center border border-white/30 shadow-2xl transform transition-all duration-500 hover:bg-black/50">
 
-            {/* ❌ Cross Close Button */}
+            {/* Close Button */}
             <button
               onClick={() => setPomo(false)}
-              className="absolute top-3 right-3 text-white hover:text-red-400 transition"
+              className="absolute top-2 right-2 text-white hover:text-red-400 transition transform hover:scale-110"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -652,16 +775,57 @@ function App() {
               </svg>
             </button>
 
+            {/* Control and Visibility Buttons */}
+            <div className="flex gap-3 w-full justify-center mb-3">
+              {/* Start / Pause Button */}
+              <button
+                className={`px-5 py-2 rounded-md font-semibold text-base transition duration-300 ease-in-out shadow-lg hover:scale-105 ${isPomodoroRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                onClick={() => {
+                  if (isPomodoroRunning) {
+                    setIsPomodoroRunning(false);
+                  } else {
+                    setIsPomodoroRunning(true);
+                    setShowPomo(true);
+                  }
+                }}
+              >
+                {isPomodoroRunning ? 'Pause' : 'Start'}
+              </button>
+
+              {/* Reset Button */}
+              <button
+                className="bg-gray-700 hover:bg-gray-800 px-5 py-2 rounded-md font-semibold text-base transition duration-300 ease-in-out shadow-lg hover:scale-105"
+                onClick={() => {
+                  setIsPomodoroRunning(false);
+                  setIsOnBreak(false);
+                  setTimeLeft(pomodoroDuration * 60);
+                }}
+              >
+                Reset
+              </button>
+
+              {/* Visibility Button */}
+              <button
+                className="bg-gray-700 hover:bg-gray-800 px-5 py-2 rounded-md font-semibold text-base transition duration-300 ease-in-out shadow-lg hover:scale-105"
+                onClick={() => {
+                  setShowPomo((prev) => !prev);
+                  setIsPomodoroRunning(false);
+                }}
+              >
+                {showPomo ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
             {/* Duration Selectors */}
-            <div className="flex gap-6 w-full justify-center">
+            <div className="flex gap-4 w-full justify-center mb-3">
               {/* Work Duration */}
               <div className="flex flex-col items-center">
-                <label htmlFor="pomodoroDuration" className="mb-1 text-sm font-semibold text-white/90">
+                <label htmlFor="pomodoroDuration" className="mb-1 text-xs font-semibold text-white/90">
                   Work Duration
                 </label>
                 <select
                   id="pomodoroDuration"
-                  className="rounded px-2 py-1 bg-black/60 text-white border border-white/10 focus:outline-none"
+                  className="rounded-md px-3 py-1.5 bg-black/60 text-white border border-white/40 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                   value={pomodoroDuration}
                   onChange={(e) => {
                     const val = Number(e.target.value);
@@ -680,12 +844,12 @@ function App() {
 
               {/* Break Duration */}
               <div className="flex flex-col items-center">
-                <label htmlFor="breakDuration" className="mb-1 text-sm font-semibold text-blue-300">
+                <label htmlFor="breakDuration" className="mb-1 text-xs font-semibold text-blue-300">
                   Break Duration
                 </label>
                 <select
                   id="breakDuration"
-                  className="rounded px-2 py-1 bg-black/60 text-white border border-blue-400/20 focus:outline-none"
+                  className="rounded-md px-3 py-1.5 bg-black/60 text-white border border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   value={breakDuration}
                   onChange={(e) => {
                     const val = Number(e.target.value);
@@ -703,47 +867,6 @@ function App() {
               </div>
             </div>
 
-            {/* Control Buttons */}
-            <div className="flex gap-4">
-              {isPomodoroRunning ? (
-                <button
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold transition duration-200"
-                  onClick={() => setIsPomodoroRunning(false)}
-                >
-                  Pause
-                </button>
-              ) : (
-                <button
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded font-semibold transition duration-200"
-                  onClick={() => {
-                    setIsPomodoroRunning(true);
-                    setShowPomo(true);
-                  }}
-                >
-                  Start
-                </button>
-              )}
-              <button
-                className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded font-semibold transition duration-200"
-                onClick={() => {
-                  setIsPomodoroRunning(false);
-                  setIsOnBreak(false);
-                  setTimeLeft(pomodoroDuration * 60);
-                }}
-              >
-                Reset
-              </button>
-            </div>
-
-            <button
-              className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded font-semibold transition duration-200"
-              onClick={() => {
-                setShowPomo((prev) => !prev);
-                setIsPomodoroRunning(false);
-              }}
-            >
-              Visibility : {showPomo ? 'on' : 'off'}
-            </button>
           </div>
         )}
 
@@ -752,33 +875,31 @@ function App() {
 
 
 
+
+
         {timerShow && !close && (
           <>
+            {/* Timer Button (Smaller Size) */}
             <button
-              className={`relative px-5 py-2.5 rounded-full font-medium shadow-md border transition-all duration-300 ease-in-out 
-    ${timer
-                  ? 'bg-gradient-to-r from-emerald-400 to-emerald-600 text-white border-emerald-700 hover:shadow-emerald-500/50'
-                  : 'bg-gradient-to-r from-rose-400 to-rose-600 text-white border-rose-700 hover:shadow-rose-500/50'} 
-    hover:scale-105 hover:ring-2 hover:ring-opacity-50 cursor-pointer no-drag`}
-              onClick={() => {
-                setTimer(!timer)
-                // setPomo(false)
-              }}
+              className={`relative px-4 py-2 rounded-full font-medium text-md shadow-md border transition-all duration-300 ease-in-out
+        ${timer
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-emerald-800 hover:shadow-emerald-600/60'
+                  : 'bg-gradient-to-r from-rose-500 to-rose-700 text-white border-rose-800 hover:shadow-rose-600/60'}
+        hover:scale-110 hover:ring-2 hover:ring-opacity-50 cursor-pointer no-drag`}
+              onClick={() => setTimer(!timer)}
             >
-
-              <span className="inline-flex items-center gap-2">
-
+              <span className="inline-flex items-center gap-1">
                 {timer ? (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3" />
                     </svg>
                     Timer: ON
                   </>
                 ) : (
                   <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     Timer: OFF
                   </>
@@ -786,24 +907,26 @@ function App() {
               </span>
             </button>
 
-
+            {/* Settings Modal for Timer (only visible when timer is OFF) */}
             {!timer && (
+              <div className="p-4 rounded-2xl cursor-pointer max-w-xs w-full text-center flex flex-col items-center space-y-6 mx-auto bg-gradient-to-br from-gray-900 to-black backdrop-blur-lg shadow-lg border-2 border-gray-800">
+                {/* Header */}
+                <h3 className="text-2xl font-semibold text-white drop-shadow-md mb-4">
+                  ⏱️ Timer Settings
+                </h3>
 
-
-              <div className="p-6 rounded-2xl cursor-pointer max-w-sm w-full text-center flex flex-col items-center space-y-4 mx-auto bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-lg shadow-xl border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800">⏱️ Timer Settings</h3>
-
-                <div className="timer-settings no-drag bg-white/80 rounded-xl p-4 w-full space-y-4 shadow-inner border border-gray-100">
+                {/* Settings Container */}
+                <div className="timer-settings no-drag bg-gray-800/90 rounded-2xl p-4 w-full space-y-4 shadow-xl border border-gray-700">
                   {/* Off Duration */}
-                  <div className="offduration border-b border-gray-300 pb-3">
-                    <label htmlFor="offDuration" className="block text-sm font-medium text-gray-600 mb-1">
+                  <div className="offduration">
+                    <label htmlFor="offDuration" className="block text-sm font-medium text-gray-300 mb-2">
                       Off Duration:
                     </label>
                     <select
                       id="offDuration"
                       value={offDuration}
                       onChange={(e) => setOffDuration(Number(e.target.value))}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all"
+                      className="w-full rounded-lg border border-gray-600 px-4 py-2 text-sm text-white bg-gray-700 shadow-md focus:ring-2 focus:ring-indigo-600 focus:outline-none transition-all"
                     >
                       {durationOptions.map((duration) => (
                         <option key={duration} value={duration}>
@@ -815,14 +938,14 @@ function App() {
 
                   {/* On Duration */}
                   <div className="onduration">
-                    <label htmlFor="onDuration" className="block text-sm font-medium text-gray-600 mb-1">
+                    <label htmlFor="onDuration" className="block text-sm font-medium text-gray-300 mb-2">
                       On Duration:
                     </label>
                     <select
                       id="onDuration"
                       value={onDuration}
                       onChange={(e) => setOnDuration(Number(e.target.value))}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all"
+                      className="w-full rounded-lg border border-gray-600 px-4 py-2 text-sm text-white bg-gray-700 shadow-md focus:ring-2 focus:ring-indigo-600 focus:outline-none transition-all"
                     >
                       {durationOptions.map((duration) => (
                         <option key={duration} value={duration}>
@@ -833,138 +956,104 @@ function App() {
                   </div>
                 </div>
               </div>
-            )
+            )}
 
-            }
           </>
         )}
 
 
 
 
-        {settings && (
-          <div
-            className="  p-4 rounded-xl max-w-xs w-full text-center  space-y-4 relative"
-          >
-            <div className="flex justify-center gap-2 mb-4">
-              {(['sm', 'md', 'lg', 'xl'] as const).map(size => (
-                <button
-                  key={size}
-                  onClick={() => setEyeSize(size)}
-                  className={`text-xs px-3 py-1 rounded-full border 
-        ${eyeSize === size ? 'bg-white text-black' : 'bg-black/40 text-white'} 
-        hover:scale-105 transition`}
-                >
-                  {size.toUpperCase()}
-                </button>
-              ))}
-            </div>
-            <label className="block text-white font-semibold mb-2 text-sm">
-              Choose Premium Color
-            </label>
 
-            <div className="flex justify-between relative gap-3">
-              {premiumColors.map((color, i) => {
-                const isTransparent = color === 'transparent';
-                const isSelected = selectedColor === color;
 
-                return (
+        {showEyes ? (
+          <div className="flex no-drag gap-8 -mt-12 flex-wrap justify-center">
+
+            <div id="customPaletteContainer">
+              <div className="customMain">
+                {sortedEyeOptions.map((eye) => (
                   <div
-                    key={i}
-                    className={`rounded-full ${isTransparent && isSelected ? 'p-[2px] border-animation' : ''}`}
+                    key={eye.name}
+                    onClick={() => setSelectedEye(eye.src)}
+                    className="customSup"
                   >
-                    <button
-                      onClick={() => setSelectedColor(color)}
-                      style={{
-                        backgroundColor: isTransparent ? 'transparent' : color,
-                      }}
-                      className={`w-10 h-10 rounded-full border transition-transform hover:scale-110 
-            ${isSelected && !isTransparent ? 'border-white' : 'border-transparent'} 
-            ${isTransparent ? 'bg-checkered' : ''}
-          `}
-                      aria-label={`Select color ${i + 1}`}
-                    />
+                    <div className="customSub" style={{ backgroundColor: eye.color }}>
+                      <div className="customPoint"></div>
+                      <a href="#" className="customLink">
+                        {eye.name}
+                      </a>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => setSettings(false)}
-              className="absolute top-0 right-2 p-1 transition"
-              aria-label="Close settings"
-              style={{
-                color: 'white',
-                // filter: 'drop-shadow(0 0 4px rgb(255 0 0)) drop-shadow(0 0 6px rgb(0 255 0)) drop-shadow(0 0 8px rgb(0 0 255))',
-                // alternatively use textShadow:
-                // textShadow: '0 0 5px red, 0 0 10px green, 0 0 15px blue',
-                cursor: 'pointer',
-              }}
-            >
-              <FiX size={20} />
-            </button>
-
-          </div>
-        )}
-         {!pomo && showPomo && !timerShow && !settings && (
-
-
-          <div
-            className="relative group w-40 h-40 no-drag  rounded-full transition-all duration-150 active:scale-95 shadow-md hover:shadow-xl"
-
-            onClick={() => setIsPomodoroRunning(!isPomodoroRunning)}
-
-          >
-
-
-            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="rgba(255,255,255,0.08)"
-                strokeWidth="8"
-                fill="none"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke={isOnBreak ? "url(#blueGradient)" : "url(#greenGradient)"}
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={2 * Math.PI * 45}
-                strokeDashoffset={
-                  2 * Math.PI * 45 *
-                  (1 - timeLeft / ((isOnBreak ? breakDuration : pomodoroDuration) * 60))
-                }
-                strokeLinecap="round"
-                className="transition-all duration-500 "
-              />
-              <defs>
-                <linearGradient id="greenGradient" x1="1" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00ffcc" />
-                  <stop offset="100%" stopColor="#22c55e" />
-                </linearGradient>
-                <linearGradient id="blueGradient" x1="1" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#60a5fa" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            {/* Centered Time Text */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <div className="text-4xl font-mono tracking-wide text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
-                {formatTime(timeLeft)}
-              </div>
-              <div className={`text-xs mt-1 font-semibold uppercase tracking-wide ${isOnBreak ? 'text-blue-400' : 'text-green-400'}`}>
-                {isOnBreak ? 'Break Time' : 'Focus Time'}
+                ))}
               </div>
             </div>
           </div>
 
+
+
+
+        ) : (
+          <>
+
+            {!pomo && showPomo && !timerShow && !settings && (
+              <div
+                className="relative -mt-6 group w-40 h-40 no-drag rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-xl active:scale-95 shadow-lg hover:bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
+                onClick={() => setIsPomodoroRunning(!isPomodoroRunning)}
+              >
+                <svg className="w-full h-full transform rotate-[-90deg]" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke="rgba(255,255,255,0.12)"
+                    strokeWidth="10"
+                    fill="none"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke={isOnBreak ? "url(#blueGradient)" : "url(#greenGradient)"}
+                    strokeWidth="10"
+                    fill="none"
+                    strokeDasharray={2 * Math.PI * 45}
+                    strokeDashoffset={
+                      2 * Math.PI * 45 *
+                      (1 - timeLeft / ((isOnBreak ? breakDuration : pomodoroDuration) * 60))
+                    }
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-in-out"
+                  />
+                  <defs>
+                    <linearGradient id="greenGradient" x1="1" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00ffcc" />
+                      <stop offset="100%" stopColor="#22c55e" />
+                    </linearGradient>
+                    <linearGradient id="blueGradient" x1="1" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#60a5fa" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                {/* Centered Time Text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <div className="text-5xl font-extrabold tracking-wide text-white drop-shadow-lg transition-all duration-300">
+                    {formatTime(timeLeft)}
+                  </div>
+                  <div className={`text-xs mt-2 font-semibold uppercase tracking-wide ${isOnBreak ? 'text-blue-400' : 'text-green-400'} transition-all ease-in-out`}>
+                    {isOnBreak ? 'Break Time' : 'Focus Time'}
+                  </div>
+                </div>
+
+                {/* Hover effect for extra visual */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-20 transition-all duration-300 rounded-full"></div>
+              </div>
+            )}
+
+          </>
         )
+
         }
       </div>
 
