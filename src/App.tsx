@@ -373,7 +373,7 @@ function App() {
       >
 
         <div
-          className={`${(Drag || close) ? 'draggable-window' : ''} hover:border-2 ${!close ? 'p-2' : ''} border-white rounded-3xl`}
+          className={`${(Drag || close) ? 'draggable-window' : ''} -mb-[.0rem] hover:border-2 ${!close ? 'p-2' : ''} border-white rounded-3xl`}
           style={{ backgroundColor: eyeBgColor }}
         >
 
